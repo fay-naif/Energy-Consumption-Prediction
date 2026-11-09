@@ -9,13 +9,64 @@ import pandas as pd
 import streamlit as st
 
 st.set_page_config(page_title='Energy Consumption | التنبؤ باستهلاك الطاقة',page_icon='⚡',layout='wide')
+
+st.markdown("""
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700&family=Inter:wght@400;600;700&display=swap');
+html, body, [class*="css"], .stApp, input, button, label { font-family: 'IBM Plex Sans Arabic', 'Inter', sans-serif !important; }
+.stApp {
+    direction: rtl;
+    color: #e8eef5;
+    background:
+        radial-gradient(1100px 600px at 90% -10%, #123a4a 0%, transparent 60%),
+        radial-gradient(900px 600px at 0% 100%, #2a1d3f 0%, transparent 60%),
+        #0a1220;
+}
+[data-testid="stHeader"] { background: transparent; }
+.block-container { max-width: 1250px; padding-top: 2.5rem; }
+p, label, .stMarkdown, [data-testid="stCaptionContainer"] { text-align: right; }
+.hero h1 { font-size: 2.3rem; font-weight: 700; margin: 0; color: #e8eef5; }
+.hero h1 b { background: linear-gradient(90deg, #2ee6c5, #ffc65c); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.hero p { color: #8fa3b8; font-size: 1.05rem; margin-top: .4rem; }
+[data-testid="stAlert"] { border-radius: 14px; }
+[data-testid="stForm"] {
+    background: linear-gradient(160deg, #111f33, #0c1726);
+    border: 1px solid #1d324b; border-radius: 22px; padding: 1.6rem 1.8rem;
+}
+[data-testid="stNumberInput"] input, [data-testid="stDateInput"] input, [data-testid="stTimeInput"] input,
+div[data-baseweb="input"], div[data-baseweb="select"] > div {
+    background: #0a1524 !important; color: #e8eef5 !important; border-color: #22384f !important; border-radius: 12px !important;
+}
+[data-testid="stNumberInput"] button { background: #0a1524 !important; color: #2ee6c5 !important; border: none !important; }
+label, [data-testid="stWidgetLabel"] p { color: #b6c4d3 !important; }
+h2, h3, [data-testid="stHeading"] { color: #e8eef5 !important; text-align: right; }
+[data-testid="stExpander"] { border: 1px solid #22384f; border-radius: 14px; background: rgba(10,21,36,.6); }
+[data-testid="stFormSubmitButton"] button {
+    background: linear-gradient(90deg, #2ee6c5, #ffc65c) !important; color: #08131f !important;
+    border: none !important; border-radius: 14px !important; font-weight: 700 !important; font-size: 1.1rem !important;
+    padding: .8rem 0 !important; box-shadow: 0 8px 30px rgba(46,230,197,.25);
+}
+.result {
+    display: flex; align-items: center; gap: 2rem; margin-top: 1.4rem;
+    background: linear-gradient(160deg, #111f33, #0c1726); border: 1px solid #1d324b; border-radius: 22px; padding: 1.6rem 1.8rem;
+}
+.ring { width: 180px; height: 180px; border-radius: 50%; display: grid; place-items: center; flex: none; }
+.ring div { width: 146px; height: 146px; border-radius: 50%; background: #0d1828; display: grid; place-items: center; text-align: center; }
+.ring b { font-family: Inter; font-size: 2.2rem; color: #e8eef5; display: block; }
+.ring small { color: #8fa3b8; }
+.result .lbl { color: #8fa3b8; font-size: 1rem; }
+.result .val { font-family: Inter; font-size: 2.6rem; font-weight: 700; color: #ffc65c; direction: ltr; text-align: right; }
+.result .sub { color: #8fa3b8; font-size: .95rem; line-height: 1.8; }
+hr { border-color: #1d324b !important; }
+</style>
+""", unsafe_allow_html=True)
 ROOT=Path(__file__).resolve().parents[1]
 @st.cache_resource
 def load_bundle():
     return joblib.load(ROOT/'models'/'energy_model.joblib')
 
-st.title('⚡ التنبؤ باستهلاك طاقة الأجهزة المنزلية')
-st.caption('نموذج تجريبي | توقع استهلاك الأجهزة خلال فترة 10 دقائق بوحدة واط-ساعة (Wh)')
+st.markdown("<div class='hero'><h1>⚡ التنبؤ <b>باستهلاك طاقة الأجهزة المنزلية</b></h1>"
+            "<p>نموذج تجريبي | توقع استهلاك الأجهزة خلال فترة 10 دقائق بوحدة واط-ساعة (Wh)</p></div>", unsafe_allow_html=True)
 st.warning('⚠️ هذا النموذج دُرّب على بيانات منزل واحد فقط، ولا يُعدّ أداة موثوقة للتنبؤ باستهلاك المنازل الأخرى. النتائج تقديرية وليست قراءة فعلية أو نصيحة لترشيد الطاقة.')
 if not (ROOT/'models'/'energy_model.joblib').exists():
     st.error('ملف النموذج غير موجود. شغّل أولًا: python src/train_and_export.py')
@@ -50,9 +101,20 @@ if submitted:
     row['date'] = dt
     X = make_features(pd.DataFrame([row])).reindex(columns=features)
     prediction=max(0.,float(model.predict(X)[0]))
-    st.metric('الاستهلاك المتوقع خلال 10 دقائق',f'{prediction:,.1f} Wh')
-    st.caption(f'ما يعادل تقريبًا {prediction/1000:.3f} kWh خلال فترة التوقع فقط، وليس استهلاك ساعة أو يوم كامل.')
-    st.caption('إذا استخدمتِ القيم الافتراضية، فالنتيجة توضيحية فقط؛ وللتنبؤ بحالة واقعية يجب توفير جميع قراءات الحساسات المطلوبة.')
+    deg = min(prediction / 300, 1) * 360
+    st.markdown(f"""
+    <div class='result'>
+      <div class='ring' style='background: conic-gradient(#ffc65c 0 {deg:.0f}deg, #1b2c42 0);'>
+        <div><span><b>{prediction:,.1f}</b><small>Wh</small></span></div>
+      </div>
+      <div>
+        <div class='lbl'>الاستهلاك المتوقع خلال 10 دقائق</div>
+        <div class='val'>{prediction:,.1f} Wh</div>
+        <div class='sub'>ما يعادل تقريبًا {prediction/1000:.3f} kWh خلال فترة التوقع فقط، وليس استهلاك ساعة أو يوم كامل.<br>
+        إذا استخدمتِ القيم الافتراضية، فالنتيجة توضيحية فقط؛ وللتنبؤ بحالة واقعية يجب توفير جميع قراءات الحساسات المطلوبة.</div>
+      </div>
+    </div>
+    """, unsafe_allow_html=True)
 st.divider()
 st.markdown('**عن النموذج:** Extra Trees (إكسترا تريز) | بيانات UCI Appliances Energy Prediction (يو سي آي أبلاينسز إنرجي بريديكشن) | منزل واحد | قياسات كل 10 دقائق.')
 st.caption('التقييم الأساسي باستخدام تقسيم عشوائي 80/20. يوجد أيضًا اختبار زمني مستقل موثق في reports/chronological_metrics.json؛ وقد يختلف أداؤه عن التقسيم العشوائي.')
