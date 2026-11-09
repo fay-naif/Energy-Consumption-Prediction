@@ -1,0 +1,9 @@
+{
+  "model": "Extra Trees",
+  "evaluation": "chronological 80/20 holdout",
+  "r2": -0.9307782633217356,
+  "mae": 97.52735410860569,
+  "rmse": 126.50026547933776,
+  "n_train": 15788,
+  "n_test": 3947
+}

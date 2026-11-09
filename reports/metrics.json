@@ -1,0 +1,9 @@
+{
+  "model": "Extra Trees",
+  "evaluation": "random 80/20 split",
+  "r2": 0.6457190348057366,
+  "mae": 26.66914111983785,
+  "rmse": 59.54260568358899,
+  "n_train": 15788,
+  "n_test": 3947
+}
